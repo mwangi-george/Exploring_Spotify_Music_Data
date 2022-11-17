@@ -1,10 +1,11 @@
 Exploring Spotify Music Data
 ================
 By Mwangi George
-Last edited Nov, 14 2022
+Last edited Nov, 17 2022
 
 -   <a href="#amount-of-spoken-words" id="toc-amount-of-spoken-words">Amount
     of Spoken Words</a>
+-   <a href="#loudness" id="toc-loudness">Loudness</a>
 
 # Amount of Spoken Words
 
@@ -82,9 +83,9 @@ cor(spotify$speechiness, spotify$popularity)
 
 The correlation coefficient between the variables speechiness and
 popularity is -0.0415. This value means that there exists a weak
-negative association between speechiness and popularity. High
-speechiness in a song mean lower popularity but this association is very
-weak. We can visualize this relationship using a scatter plot.
+negative association between speechiness and popularity. More words in a
+song mean is associated with reduced popularity but this association is
+very weak. We can visualize this relationship using a scatter plot.
 
 ``` r
 spotify %>%
@@ -99,3 +100,77 @@ spotify %>%
 ```
 
 ![](spotify_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+# Loudness
+
+In this part, we are going to explore Loudness of the songs. Let’s start
+by calculating summary statistics of variable.
+
+``` r
+summary(spotify$song_loudness)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ## -60.000  -6.000  -5.000  -5.579  -4.000  -2.000
+
+On average, a song has an average loudness of -5.579 decibel. The
+minimum and maximum loudness values are -60 decibel and -2 decibel
+respectively. We can utilize a histogram to visualize the distribution.
+
+``` r
+spotify %>% 
+  ggplot(aes(song_loudness))+
+  geom_histogram(bins = 30)+
+  theme_clean()+
+  labs(title = "Distribution of song loudness")
+```
+
+![](spotify_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+spotify %>% 
+  filter(song_loudness == -60)
+```
+
+    ## # A tibble: 1 × 15
+    ##      id song_title   song_…¹ top_g…²  year beats…³ song_…⁴ dance…⁵ song_…⁶  live
+    ##   <dbl> <chr>        <chr>   <chr>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl> <dbl>
+    ## 1   443 Million Yea… Adele   britis…  2016       0       0       0     -60     0
+    ## # … with 5 more variables: valence <dbl>, duration <dbl>, acousticness <dbl>,
+    ## #   speechiness <dbl>, popularity <dbl>, and abbreviated variable names
+    ## #   ¹​song_artist, ²​top_genre, ³​beats_per_min, ⁴​song_energy, ⁵​danceability,
+    ## #   ⁶​song_loudness
+
+We learn that most of the values lie between -12 dB and -5 dB. There is
+one song, however, “Million Years Ago” by Adele, with -60 dB. Notice
+that this is the same identified with zero words. We can take this
+analysis further by exploring the correlation between loudness and
+popularity of a song.
+
+``` r
+# correlation coeffient between song loudness and popularity
+cor(spotify$song_loudness, spotify$popularity)
+```
+
+    ## [1] 0.1568972
+
+The output suggests shows that there is a weak positive association
+between the loudness of a song and its popularity. More loudness in a
+song is associated with more popularity. Let’s visualize this
+relationship with a scatter plot.
+
+``` r
+spotify %>% 
+  mutate(year = as.factor(year)) %>% 
+  ggplot(aes(song_loudness, popularity))+
+  geom_jitter(alpha = .5)+
+  facet_wrap(~ year)+
+  labs(title = "Popularity Versus Loudness")
+```
+
+![](spotify_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+The relationship is not very clear but we can see that in 2019, most
+songs had higher sound and were associated with high popularity compared
+to 2016 where some songs had low sound and were associated with low
+popularity.
