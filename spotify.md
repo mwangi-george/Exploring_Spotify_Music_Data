@@ -1,11 +1,15 @@
 Exploring Spotify Music Data
 ================
 By Mwangi George
-Last edited Nov, 17 2022
+Last edited Nov, 19 2022
 
 -   <a href="#amount-of-spoken-words" id="toc-amount-of-spoken-words">Amount
     of Spoken Words</a>
 -   <a href="#loudness" id="toc-loudness">Loudness</a>
+-   <a href="#song-duration" id="toc-song-duration">Song Duration</a>
+    -   <a href="#average-song-duration-over-time-year"
+        id="toc-average-song-duration-over-time-year">Average song duration over
+        time year.</a>
 
 # Amount of Spoken Words
 
@@ -174,3 +178,39 @@ The relationship is not very clear but we can see that in 2019, most
 songs had higher sound and were associated with high popularity compared
 to 2016 where some songs had low sound and were associated with low
 popularity.
+
+# Song Duration
+
+### Average song duration over time year.
+
+``` r
+spotify %>% 
+  # group observations by year
+  group_by(year) %>% 
+  # calculate grouped statistics
+  summarise(
+    average_song_duration = mean(duration)
+  ) %>% 
+  # visualize 
+  ggplot(
+    aes(
+      x = factor(year), 
+      y = average_song_duration, 
+      group = 1
+      )
+  )+
+  geom_line(
+    color = "red", 
+    size = 1,
+    alpha = .4
+    )+
+  theme_few()+
+  labs(
+    title = "Average Duration of Top Songs Over time",
+    x = "Year",
+    y = "Average Song Duration (Seconds)",
+    subtitle = "Source::Spotify Music Data"
+  )
+```
+
+![](spotify_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
