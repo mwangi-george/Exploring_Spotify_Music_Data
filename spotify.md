@@ -1,7 +1,7 @@
 Exploring Spotify Music Data
 ================
 By Mwangi George
-Last edited Nov, 19 2022
+Last edited Nov, 30 2022
 
 -   <a href="#amount-of-spoken-words" id="toc-amount-of-spoken-words">Amount
     of Spoken Words</a>
@@ -10,6 +10,8 @@ Last edited Nov, 19 2022
     -   <a href="#average-song-duration-over-time-year"
         id="toc-average-song-duration-over-time-year">Average song duration over
         time year.</a>
+-   <a href="#the-energy-of-songs" id="toc-the-energy-of-songs">The Energy
+    of songs</a>
 
 # Amount of Spoken Words
 
@@ -136,14 +138,9 @@ spotify %>%
   filter(song_loudness == -60)
 ```
 
-    ## # A tibble: 1 × 15
-    ##      id song_title   song_…¹ top_g…²  year beats…³ song_…⁴ dance…⁵ song_…⁶  live
-    ##   <dbl> <chr>        <chr>   <chr>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl> <dbl>
-    ## 1   443 Million Yea… Adele   britis…  2016       0       0       0     -60     0
-    ## # … with 5 more variables: valence <dbl>, duration <dbl>, acousticness <dbl>,
-    ## #   speechiness <dbl>, popularity <dbl>, and abbreviated variable names
-    ## #   ¹​song_artist, ²​top_genre, ³​beats_per_min, ⁴​song_energy, ⁵​danceability,
-    ## #   ⁶​song_loudness
+|  id | song_title        | song_artist | top_genre    | year | beats_per_min | song_energy | danceability | song_loudness | live | valence | duration | acousticness | speechiness | popularity |
+|----:|:------------------|:------------|:-------------|-----:|--------------:|------------:|-------------:|--------------:|-----:|--------:|---------:|-------------:|------------:|-----------:|
+| 443 | Million Years Ago | Adele       | british soul | 2016 |             0 |           0 |            0 |           -60 |    0 |       0 |      227 |            0 |           0 |          0 |
 
 We learn that most of the values lie between -12 dB and -5 dB. There is
 one song, however, “Million Years Ago” by Adele, with -60 dB. Notice
@@ -200,17 +197,135 @@ spotify %>%
       )
   )+
   geom_line(
-    color = "red", 
+    color = "gray15", 
     size = 1,
     alpha = .4
     )+
   theme_few()+
   labs(
-    title = "Average Duration of Top Songs Over time",
+    title = "As time passes, the duration of top songs decrease",
     x = "Year",
     y = "Average Song Duration (Seconds)",
-    subtitle = "Source::Spotify Music Data"
+    subtitle = "Average Duration of Top Songs Over time",
+    caption = "Source::Spotify Music Data"
+  )+
+  theme(
+    plot.background = element_rect(fill = "gray90")
   )
 ```
 
 ![](spotify_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+From the analysis above, it is clear that duration of top songs keeps
+decreasing over time.
+
+# The Energy of songs
+
+To analysis this variable, let’s start by looking at the distribution
+for every year.
+
+``` r
+spotify %>% 
+  ggplot(
+    aes(
+      song_energy
+    )
+  )+
+  geom_histogram(binwidth = 10)+
+  facet_wrap(~year)
+```
+
+![](spotify_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+The energy of songs have left skewed distribution for most years. Most
+of the songs seem to have energy around 50 to 90. Lets investigate if
+this trend is reflected in the overall distribution for all years.
+
+``` r
+spotify %>% 
+  ggplot(
+    aes(
+      song_energy
+    )
+  )+
+  geom_histogram(binwidth = 10)
+```
+
+![](spotify_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+The same trend- left skewed distribution- is reflected in the overall
+distribution as shown above. We can use a box plot to detect outliers in
+this variable
+
+``` r
+spotify %>% 
+  ggplot(
+    aes(
+      x = " ", y = song_energy
+    )
+  )+
+  geom_boxplot()
+```
+
+![](spotify_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+There exists songs with low energy. We can take this analysis further to
+determine whether these songs with low energies are more popular than
+others
+
+``` r
+# correlation between songs energy and popularity 
+# for songs with low energies
+spotify %>% 
+  filter(song_energy < 30) %>% 
+  summarise(
+    correlation_coef_low_enr = cor(song_energy, popularity)
+    )
+```
+
+| correlation_coef_low_enr |
+|-------------------------:|
+|                0.8384985 |
+
+Surprisingly, songs with low energy seems to be associated with high
+popularity as shown by the strong positive correlation coefficient. Lets
+determine if this is the same case for songs with energy higher than 30.
+
+``` r
+# correlation between songs energy and popularity 
+# for songs with more energies
+spotify %>% 
+  filter(song_energy > 30) %>% 
+  summarise(
+    correlation_coef_high_enr = cor(song_energy, popularity)
+    )
+```
+
+| correlation_coef_high_enr |
+|--------------------------:|
+|                -0.1210913 |
+
+Songs with more energy are less popular as shown by the negative
+association. Holding other factors constant, it is safe to conclude that
+the most popular songs are those with low energy. Lets now identify
+which songs are these exactly.
+
+``` r
+spotify %>% 
+  filter(song_energy < 30) %>% 
+  select(song_title, song_artist, year)
+```
+
+| song_title                    | song_artist       | year |
+|:------------------------------|:------------------|-----:|
+| Clown                         | Emeli Sand<e9>    | 2013 |
+| All of Me                     | John Legend       | 2014 |
+| Say Something                 | A Great Big World | 2014 |
+| Not About Angels              | Birdy             | 2014 |
+| FourFiveSeconds               | Rihanna           | 2015 |
+| Mark My Words                 | Justin Bieber     | 2015 |
+| All I Ask                     | Adele             | 2016 |
+| Start                         | John Legend       | 2016 |
+| Beautiful Birds (feat. Birdy) | Passenger         | 2016 |
+| Million Years Ago             | Adele             | 2016 |
+| All I Ask                     | Adele             | 2017 |
